@@ -144,7 +144,7 @@ NOTES:
  */
 int bitXor(int x, int y) {
 
-  return ~((~x&y)&(~y&x));
+  return ~(~(~x&y)&~(~y&x));//edit
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -153,8 +153,7 @@ int bitXor(int x, int y) {
  *   Rating: 1
  */
 int tmin(void) {
-
-  return 2;
+  return (1<<31);//edit
 
 }
 //2
@@ -165,8 +164,8 @@ int tmin(void) {
  *   Max ops: 10
  *   Rating: 1
  */
-int isTmax(int x) {
-  return 2;
+int isTmax(int x) {//take much time
+  return !((x^(x+1))+1)& !!(x+1);
 }
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
@@ -177,7 +176,9 @@ int isTmax(int x) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-  return 2;
+  int t = 0xAA;
+      t = t|t<<8|t<<16|t<<24; 
+  return !((x&t)^t);
 }
 /* 
  * negate - return -x 
@@ -187,7 +188,7 @@ int allOddBits(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  return ~x+1;
 }
 //3
 /* 
@@ -200,7 +201,12 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  int sign_x = (x>>31)&0x1;//the sign bit of x
+  int a = 0x30;
+  int b = 0x39;
+  int p = !(((~a)+1+x)>>31);//x>=a when x is positive
+  int q = !(((~x)+1+b)>>31);//x<=b when x is positive 
+  return (p&q&!sign_x);
 }
 /* 
  * conditional - same as x ? y : z 
@@ -210,7 +216,10 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  int flag = ~!x+1;//x==0 flag == 0xffffffff ; x!==0  flag == 0x00000000
+  int rt_y = ~flag & y;
+  int rt_z = flag & z; 
+  return rt_y |rt_z;
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -220,7 +229,10 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  int sign_x = (x>>31)&0x1;
+  int sign_y = (y>>31)&0x1;
+  int isSameSign = !(sign_x^sign_y);
+  return (isSameSign&(!(((~x)+1+y)>>31)))|((!isSameSign)&sign_x);
 }
 //4
 /* 
@@ -231,8 +243,9 @@ int isLessOrEqual(int x, int y) {
  *   Max ops: 12
  *   Rating: 4 
  */
-int logicalNeg(int x) {
-  return 2;
+int logicalNeg(int x) {//***
+  
+  return ((~(~x+1)&~x)>>31)&0x1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
@@ -247,7 +260,21 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+  int op =x^(x>>31);//if x is nagetive, switch it, we consider positive number
+  int isZero = !op;//zero and -1 need 1 bit
+  int notZeroMask = (!(!op)<<31)>>31;//not zero or -1
+  int bit_16,bit_8,bit_4,bit_2,bit_1;
+  bit_16 = !!(op>>16)<<4;//y=1;bit1 has 16 bits at least
+  op = op>>bit_16;
+  bit_8 = !!(op>>8)<<3;
+  op = op>>bit_8;
+  bit_4 = !!(op>>4)<<2;
+  op = op>>bit_4;
+  bit_2 = !!(op>>2)<<1;
+  op = op>>bit_2;
+  bit_1 = !!(op>>1);
+  op = bit_16+bit_8+bit_4+bit_2+bit_1+2;//at least need 1 bit for 1 to tmax and need one more bit for sign
+  return isZero|(op&notZeroMask);//when not zero or -1 ,return op
 }
 //float
 /* 

@@ -26,6 +26,7 @@ queue_t *q_new()
 {
     queue_t *q =  malloc(sizeof(queue_t));
     /* What if malloc returned NULL? */
+    if(!q)return ERROR;//edit
     q->head = NULL;
     return q;
 }
@@ -33,9 +34,14 @@ queue_t *q_new()
 /* Free all storage used by queue */
 void q_free(queue_t *q)
 {
-    /* How about freeing the list elements and the strings? */
+    list_ele_t *cur;//edit  
+  /* How about freeing the list elements and the strings? */
+    while(q){//edit
+  	 cur = q; //edit
     /* Free queue structure */
-    free(q);
+  	 free(q);
+  	 q = cur->next;//edit
+    }
 }
 
 /*
@@ -47,11 +53,14 @@ void q_free(queue_t *q)
  */
 bool q_insert_head(queue_t *q, char *s)
 {
+    if(!q)return false;//edit
     list_ele_t *newh;
     /* What should you do if the q is NULL? */
-    newh = malloc(sizeof(list_ele_t));
+    newh = malloc(sizeof(list_ele_t));	
     /* Don't forget to allocate space for the string and copy it */
+    if(!newh) return false;//edit
     /* What if either call to malloc returns NULL? */
+    newh->value = *s;//edit
     newh->next = q->head;
     q->head = newh;
     return true;
@@ -67,9 +76,16 @@ bool q_insert_head(queue_t *q, char *s)
  */
 bool q_insert_tail(queue_t *q, char *s)
 {
+    if(!q)return false;//edit
+    list_ele_t *newt;
+    newt = malloc(sizeof(list_ele_t));
+    if(!newt)return false;
     /* You need to write the complete code for this function */
     /* Remember: It should operate in O(1) time */
-    return false;
+    newt->value = *s;
+    p->tail->next = newt;
+    p->tail = newt;
+    return true;
 }
 
 /*
@@ -80,8 +96,9 @@ bool q_insert_tail(queue_t *q, char *s)
   (up to a maximum of bufsize-1 characters, plus a null terminator.)
   The space used by the list element and the string should be freed.
 */
-bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
+bool q_remove_head(queue_t *q, char *sp, size_t bufsize)//CAN NOT SOLVE
 {
+    if(!q||!q->next)return false;//edit 
     /* You need to fix up this code. */
     q->head = q->head->next;
     return true;

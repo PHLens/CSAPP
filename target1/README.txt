@@ -26,3 +26,4 @@ can compile (use flag -Og) and disassemble it to look for gadgets.
 Utility program to generate byte sequences.  See documentation in lab
 handout.
 
+GDB 运行ctarget时，使用r -q   和直接运行./ctarget的指令一样 

@@ -1,4 +1,4 @@
-
+﻿
 ctarget：     文件格式 elf64-x86-64
 
 
@@ -876,7 +876,7 @@ Disassembly of section .text:
   401905:	00 00 00 
   401908:	48 89 fe             	mov    %rdi,%rsi
   40190b:	8b 3d d3 2b 20 00    	mov    0x202bd3(%rip),%edi        # 6044e4 <cookie>
-  401911:	e8 36 ff ff ff       	callq  40184c <hexmatch>
+  401911:	e8 36 ff ff ff       	callq  40184c <hexmatch>  //参数为指针，应传cookie存放的地址
   401916:	85 c0                	test   %eax,%eax
   401918:	74 23                	je     40193d <touch3+0x43>
   40191a:	48 89 da             	mov    %rbx,%rdx

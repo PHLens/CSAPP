@@ -1,16 +1,7 @@
 Border relations with Canada have never been better.
 1 2 4 8 16 32
-<<<<<<< HEAD
 0 207
 7 0
 ionefg
 1 2 3 4 5 6
-=======
-<<<<<<< HEAD
-0 207
-7 0
-ionefg
-1 2 3 4 5 6 
-=======
->>>>>>> 232ac365dfd6d29962d07581098d133b7be74375
->>>>>>> 3a89484e7eeded72d3a8fd1bec85e6eced1d4601
+

@@ -5,7 +5,12 @@
 #include <assert.h>
 #include "cachelab.h"
 #include <math.h>
+#include <errno.h>
+#include <string.h>
+#include <limits.h>
 
+#define DEBUG_ON
+#define ADDRESS_LENGTH 64
 
 typedef unsigned long long int mem_addr_t;
 
@@ -38,11 +43,13 @@ mem_addr_t set_index_mask;
 
 void initCache(){
     int i,j;
+    mem_addr_t temp = ~(0x0);
+    set_index_mask = (temp >> (ADDRESS_LENGTH-s-b)) && (temp << b);//only set field are 1
     cache = malloc(S*sizeof(cache_set_t));
     for (i=0; i<S; i++){
         cache[i] = malloc(E*sizeof(cache_line_t));
         for(j=0; j<E; j++){
-            cache[i][j].valid = 0;
+            cache[i][j].valid = '0';
             cache[i][j].tag = 0;
             cache[i][j].lru = 1;
         }
@@ -56,30 +63,79 @@ void freeCache(){
     free(cache);
 }
 
-void accessData(mem_add_t addr){
+void accessData(mem_addr_t addr){
+    int i;  
     unsigned long long int temp = addr;
     unsigned long long int addr_tag = temp >> (s+b);
     unsigned long long int addr_set = temp << (ADDRESS_LENGTH-(s+b));
-    addr_set = addr_set >> (ADDRESS_LENGTH-s);
-    int i;
+    addr_set = addr_set >> (ADDRESS_LENGTH-s);    
+    cache_line_t* evict = &cache[addr_set][0];
 
-    for(i=0; i<E; i++){
-       if(cache[addr_set][i].tag == addr_tag && cache[addr_set][i].valid != 0){
+    for(i=0; i<E; i++){     
+       if(cache[addr_set][i].tag == addr_tag && cache[addr_set][i].valid != '0'){
             hit_count++;//hit
             lru_counter++;
             cache[addr_set][i].lru = lru_counter;
-            break;
-        }
+            if(verbosity) printf(" hit ");
+            return;
+        }else if(cache[addr_set][i].valid == '0'){
+            miss_count++;//miss
+            cache[addr_set][i].valid = '1';
+            cache[addr_set][i].tag = addr_tag;
+            lru_counter++;
+            cache[addr_set][i].lru = lru_counter;
+            if(verbosity) printf(" miss ");
+            return;
+       }else{
+            if(cache[addr_set][i].lru < evict->lru) 
+                *evict = cache[addr_set][i];
+            
+       }
 
     }
-
+    miss_count++;
+    if(verbosity) printf(" miss ");
+    eviction_count++;//eviction
+    evict->tag = addr_tag;
+    evict->valid = '1';
+    lru_counter++;
+    evict->lru = lru_counter;
+    if(verbosity) printf(" eviction ");
+    return;
 }
 
 void replayTrace(char* trace_fn){
+   char buf[1000];
+   mem_addr_t addr = 0;
+   unsigned int len = 0;
+   FILE* trace_fp = fopen(trace_fn,"r");
 
+   if(!trace_fp){
+        fprintf(stderr, "%s: %s\n", trace_fn, strerror(errno));
+        exit(1);
+   }
+
+   while(fgets(buf,1000,trace_fp) != NULL){
+        if(buf[1]=='S' || buf[1]=='L' || buf[1]=='M') {
+            sscanf(buf+3,"%llx,%u",&addr,&len);
+
+            if(verbosity)
+                printf("%c %llx,%u",buf[1],addr,len);
+
+            accessData(addr);
+
+            if(buf[1]=='M')
+                accessData(addr);
+
+            if(verbosity)
+                printf("\n");
+        }
+   }
+
+   fclose(trace_fp);
 }
 
-void printUsage(char* arg[]){
+void printUsage(char* argv[]){
    
     printf("Usage: %s [-hv] -s <num> -E <num> -b <num> -t <file>\n", argv[0]);
     printf("Options:\n");
@@ -97,7 +153,7 @@ void printUsage(char* arg[]){
 
 
 
-int main()
+int main(int argc,char* argv[])
 {
     char opt;
    
@@ -140,9 +196,15 @@ int main()
     /*Initialize cacbe*/
     initCache();
 
+#ifdef DEBUG_ON
+    printf("DEBUG: S:%u E:%u B:%u trace:%s\n",S,E,B,trace_file);
+    printf("DEBUG: set_index_mask: %llu\n",set_index_mask);
+#endif
+
     replayTrace(trace_file);
 
     freeCache();
-    printSummary(0, 0, 0);
+
+    printSummary(hit_count, miss_count, eviction_count);
     return 0;
 }

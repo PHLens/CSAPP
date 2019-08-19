@@ -44,7 +44,7 @@ mem_addr_t set_index_mask;
 void initCache(){
     int i,j;
     mem_addr_t temp = ~(0x0);
-    set_index_mask = (temp >> (ADDRESS_LENGTH-s-b)) && (temp << b);//only set field are 1
+    set_index_mask = (temp >> (ADDRESS_LENGTH-s-b)) & (temp << b);//only set field are 1
     cache = malloc(S*sizeof(cache_set_t));
     for (i=0; i<S; i++){
         cache[i] = malloc(E*sizeof(cache_line_t));
@@ -64,12 +64,15 @@ void freeCache(){
 }
 
 void accessData(mem_addr_t addr){
-    int i;  
-    unsigned long long int temp = addr;
-    unsigned long long int addr_tag = temp >> (s+b);
-    unsigned long long int addr_set = temp << (ADDRESS_LENGTH-(s+b));
-    addr_set = addr_set >> (ADDRESS_LENGTH-s);    
-    cache_line_t* evict = &cache[addr_set][0];
+    int i;
+    //int index;  
+    mem_addr_t addr_tag = addr >> (s+b);
+    mem_addr_t addr_set = (addr & set_index_mask) >> b;
+    //mem_addr_t addr_set = addr << (ADDRESS_LENGTH-s-b);
+    //addr_set = addr_set >> (ADDRESS_LENGTH-s);
+    //unsigned long long int templru = cache[addr_set][0].lru;
+    cache_set_t evict;
+    evict = &cache[addr_set][0];
 
     for(i=0; i<E; i++){     
        if(cache[addr_set][i].tag == addr_tag && cache[addr_set][i].valid != '0'){
@@ -87,18 +90,24 @@ void accessData(mem_addr_t addr){
             if(verbosity) printf(" miss ");
             return;
        }else{
-            if(cache[addr_set][i].lru < evict->lru) 
-                *evict = cache[addr_set][i];
-            
+           // if(cache[addr_set][i].lru < templru){ 
+               // templru = cache[addr_set][i].lru;
+               // index = i;
+           // }
+            if(cache[addr_set][i].lru < evict->lru)
+                    evict = &cache[addr_set][i];
        }
 
     }
     miss_count++;
     if(verbosity) printf(" miss ");
     eviction_count++;//eviction
+   // cache[addr_set][index].tag = addr_tag;
     evict->tag = addr_tag;
+   // cache[addr_set][index].valid = '1';
     evict->valid = '1';
     lru_counter++;
+   // cache[addr_set][index].lru = lru_counter;
     evict->lru = lru_counter;
     if(verbosity) printf(" eviction ");
     return;

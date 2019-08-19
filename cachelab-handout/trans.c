@@ -46,9 +46,7 @@ void trans(int M, int N, int A[N][M], int B[M][N])
 
 }
 
-/*
- * registerFunctions - This function registers your transpose
- *     functions with the driver.  At runtime, the driver will
+/* * registerFunctions - This function registers your transpose *     functions with the driver.  At runtime, the driver will
  *     evaluate each of the registered functions and summarize their
  *     performance. This is a handy way to experiment with different
  *     transpose strategies.
